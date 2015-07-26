@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MAP-RACE</title>
+  <meta http-equiv="Content-Language" content="fr" />
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+  <link rel="stylesheet" href="c3.css" />
+  <link rel="stylesheet" type="text/css" href="css/dc.css"/>
+
+  <style>
+  html, body, #map {
+    height: 100%;
+    width: 100%;
+  }
+  .axis {
+    font: 10px sans-serif;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+  div.bar {
+      display: inline-block;
+      width: 20px;
+      height: 5px;   /* We'll override this later */
+      background-color: teal;
+  }
+
+  </style>
+</head>
+<body>
+
+  <div class="chart"></svg>
+
+  <!--The Old Timers-->
+  <script src="http://underscorejs.org/underscore.js"></script>
+  <script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+
+  <script>
+
+
+  $.getJSON("http://overpass-api.de/api/interpreter?data=[out%3Ajson]%3B%0A%28%0A%20way%285.621284954513929%2C20.519989013671875%2C5.903708954682924%2C20.819503784179688%29[%22building%22]%28changed%3A%222015-06-11T00%3A00%3A00Z%22%2C%222015-06-11T22%3A00%3A00Z%22%29%3B%0A%29%3B%0A%28._%3B%3E%3B%29%3B%0Aout%20meta%3B",function(data){
+
+  user_all = data.elements;
+
+  var all_user = user_all.map(function(value){
+
+    return rank = {
+      name:value.user,
+      type:value.type
+    }
+
+  })
+
+  var ways = all_user.filter(function(building){
+    return building.type == "way"
+  })
+
+  var groupbyuser = _.chain(ways).countBy('name').pairs();
+
+  var users = groupbyuser._wrapped.map(function(stat) {
+    return mapa = {name_user:stat[0],bat:stat[1]}
+  })
+  var nbbat = groupbyuser._wrapped.map(function(stat) {
+    return stat[1]
+  })
+  console.log(users,nbbat);
+
+  // d3.select("body").selectAll("div")
+  //     .data(users)
+  //     .enter()
+  //     .append("p")
+  //     .text(function(d) { return d.name_user+":"+d.bat; })
+  //     .style("color", "red")
+  //     .append("div")
+  //     .attr("class", "bar")
+  //     .style("width", function(d) {
+  //       var barWidth = +d.bat * 5;
+  //       return barWidth + "px";
+  //     });;
+
+  //Bubble Charts
+  // var w = 1500;
+  // var h = 500;
+  // var svg = d3.select("body")
+  //         .append("svg")
+  //         .attr("width", w)
+  //         .attr("height", h);
+  //
+  // var circles = svg.selectAll("circle")
+  //        .data(users)
+  //        .enter()
+  //        .append("circle");
+  //
+  // circles.attr("cx", function(d, i) {
+  //                     return (i * 50) + 25;
+  //             })
+  //         .attr("cy", h/2)
+  //         .attr("r", function(d) {
+  //                  return d.bat;
+  //         })
+  //         .attr("fill","rgb(34,34,34)")
+  //         .attr("stroke", "orange");
+
+  // var w = 600;
+  // var h = 800;
+  // var barPadding = 1;  // <-- New!
+  //Create SVG element
+  // var svg = d3.select("body")
+  //     .append("svg")
+  //     .attr("width", w)
+  //     .attr("height", h);
+  //
+  // svg.selectAll("rect")
+  //     .data(users)
+  //     .enter()
+  //     .append("rect")
+  //     .attr("x", function(d,i){return i * (w / users.length-barPadding)})//Bar width of 20 plus 1 for padding
+  //     .attr("y", function(d){return h - d.bat*5;})
+  //     .attr("width", 20)
+  //     .attr("height", function(d){return d.bat*5})
+  //     .attr("fill", "teal");
+  //
+  // svg.selectAll("text")
+  //     .data(users)
+  //     .enter()
+  //     .append("text")
+  //     .text(function(d) {
+  //       return d.bat;
+  //     })
+  //     .attr("x", function(d,i){return i * (w / users.length-barPadding)+10})
+  //     .attr("y", function(d){return h - d.bat*5 + 15;})
+  //     .attr("font-family", "sans-serif")
+  //     .attr("font-size", "11px")
+  //     .attr("fill", "white")
+  //     .attr("text-anchor", "middle")
+  var w = 600;
+  var h = 800;
+  var barPadding = 10;
+
+  var svg = d3.select("body")
+      .append("svg")
+      .attr("width", w)
+      .attr("height", h);
+
+  svg.selectAll("rect")
+      .data(users)
+      .enter()
+      .append("rect")
+      .attr("y", function(d,i){return i*(h/users.length-barPadding)})//Bar width of 20 plus 1 for padding
+      .attr("x", 0)
+      .attr("height", 20)
+      .attr("width", function(d){return d.bat*5})
+      .attr("fill", "teal");
+
+  svg.selectAll("text")
+      .data(users)
+      .enter()
+      .append("text")
+      .text(function(d) {
+        return d.bat+": "+d.name_user;
+      })
+      .attr("y", function(d,i){return i*(h/users.length-barPadding)+15})
+      .attr("x", 10)
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "11px")
+      .attr("fill", "black")
+      .attr("text-anchor", "start")
+  });//Get JSON
+
+  </script>
+</body>
+</html>
