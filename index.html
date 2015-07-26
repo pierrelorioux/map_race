@@ -11,6 +11,7 @@
   html, body, #map {
     height: 100%;
     width: 100%;
+    padding-top: 30px
   }
   .axis {
     font: 10px sans-serif;
@@ -33,7 +34,10 @@
 </head>
 <body>
 
-  <div class="chart"></svg>
+  <div class="title"># Buildings</div>
+  <div class="chart"></div>
+  <div class="tile"># Nodes</div>
+  <div class="nodes"></div>
 
   <!--The Old Timers-->
   <script src="http://underscorejs.org/underscore.js"></script>
@@ -61,15 +65,21 @@
     return building.type == "way"
   })
 
+  var nodes = all_user.filter(function(building){
+    return building.type == "node"
+  })
+
   var groupbyuser = _.chain(ways).countBy('name').pairs();
+  var groupbyuser_node = _.chain(nodes).countBy('name').pairs();
 
   var users = groupbyuser._wrapped.map(function(stat) {
     return mapa = {name_user:stat[0],bat:stat[1]}
   })
-  var nbbat = groupbyuser._wrapped.map(function(stat) {
-    return stat[1]
+
+  var users_node = groupbyuser_node._wrapped.map(function(stat) {
+    return pama = {name_user:stat[0],bat:stat[1]}
   })
-  console.log(users,nbbat);
+
 
   // d3.select("body").selectAll("div")
   //     .data(users)
@@ -139,11 +149,12 @@
   //     .attr("font-size", "11px")
   //     .attr("fill", "white")
   //     .attr("text-anchor", "middle")
+
   var w = 600;
   var h = 800;
   var barPadding = 10;
 
-  var svg = d3.select("body")
+  var svg = d3.select(".chart")
       .append("svg")
       .attr("width", w)
       .attr("height", h);
@@ -156,7 +167,7 @@
       .attr("x", 0)
       .attr("height", 20)
       .attr("width", function(d){return d.bat*5})
-      .attr("fill", "teal");
+      .attr("fill", "lightgrey");
 
   svg.selectAll("text")
       .data(users)
@@ -171,6 +182,56 @@
       .attr("font-size", "11px")
       .attr("fill", "black")
       .attr("text-anchor", "start")
+
+  //NODES
+  var x = d3.scale.ordinal().domain(d3.range(users_node.length)).rangeBands([0, 500]);
+  margin = {top: 250, right: 40, bottom: 250, left: 40};
+  var w_node = 1000;
+  var h_node = 400;
+
+  var svg_node = d3.select(".nodes")
+      .append("svg")
+      .attr("width", w_node)
+      .attr("height", h_node);
+
+  var circles = svg_node.selectAll("circle")
+      .data(users_node)
+      .enter()
+      .append("circle");
+
+  circles
+      .attr("cx", function(d, i) {
+          return (i * 30) + 70;
+        })
+       .attr("cy", h_node/2)
+       .attr("r", function(d) {
+          return d.bat/10;
+       })
+       .attr("fill","rgb(34,34,34)")
+       .attr("stroke", "white");
+
+
+  svg_node.selectAll("text")
+      .data(users_node)
+      .enter()
+      .append("text")
+      .text(function(d) {
+        return d.bat+": "+d.name_user;
+      })
+      .attr("x",function(d,i){
+        return (i * 30) + 70;
+      })
+      .attr("y",h_node/2)
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "11px")
+      .attr("fill", "teal")
+
+
+    //svg_node.selectAll("text").attr("transform", function(d, i) { return "translate(" + x(i)+",0) rotate(-50)"; })
+
+
+
+
   });//Get JSON
 
   </script>
